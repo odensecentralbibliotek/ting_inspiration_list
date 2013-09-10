@@ -1,0 +1,15 @@
+name = Ting Inspiration List
+description = Inspiration lists for Ting.
+core = 7.x
+package = Ding!
+php = 5.2.4
+project = ting_inspiration_pages
+dependencies[] = ctools
+dependencies[] = features
+dependencies[] = number
+dependencies[] = page_manager
+dependencies[] = strongarm
+dependencies[] = text
+dependencies[] = ting
+dependencies[] = ting_search
+dependencies[] = ding_availability
