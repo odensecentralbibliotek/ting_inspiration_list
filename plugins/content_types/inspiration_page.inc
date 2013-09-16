@@ -37,7 +37,7 @@ function ting_inspiration_list_content_type_render($subtype, $conf, $panel_args,
 //    $num_per_page = empty($items[0]['value']) ? 10 : $items[0]['value'];
 //
 //    // Build search query based on node fields.
-//    $query = ting_inspiration_list_build_search_query($node);
+//   $query = ting_inspiration_list_build_search_query($node);
 //
 //    // Search the data well with the query and pager page.
 //    $search_result = ting_inspiration_list_do_search($query, $pager_page, $num_per_page);
@@ -95,9 +95,56 @@ function ting_inspiration_list_content_type_render($subtype, $conf, $panel_args,
 //        '#results' => $results,
 //      );
 //    }
+    
+    $node = $context[0]->data;
+   // Build search query based on node fields.
+    $query = ting_inspiration_list_build_search_query($node);
+    file_put_contents("/home/quickstart/work/debug/debuginspiration2.txt", print_r($query, TRUE), FILE_APPEND);
 
+    // Search the data well with the query and pager page.
+    //$search_result = ting_inspiration_list_do_search($query, $pager_page, $num_per_page);
+    $search_results = ting_inspiration_list_get_raw_result($query);
+    $ids = ting_inspiration_list_process_search_results($search_results);
+    $availablity_info = ting_inspiration_list_get_availability_info($ids);
+    $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
+    $list_query = ting_inspiration_list_make_list_query($ranked_ids);
+
+file_put_contents("/home/quickstart/work/debug/debuginspiration8.txt", print_r($ranked_ids , TRUE), FILE_APPEND);
+$list_search_result = ting_inspiration_list_do_search($list_query, 0, 10);
+      $results = array();
+      foreach ($list_search_result->collections as $collection) {
+        // Build the collection.
+        $build = ting_collection_view($collection, 'teaser');
+
+        // Get link to link the result back to the collection.
+        $uri = entity_uri('ting_collection', $collection);
+
+        // Add the result to an array for the "ting_search_results" theme
+        // function.
+        $results[] = array(
+          'link' => url($uri['path'], $uri['options']),
+          'title' => $collection->title,
+          'snippet' => drupal_render($build),
+        );
+      }
+      //    // Set default page result.
+    $content = array(
+      '#theme' => 'ting_new_materials',
+      '#title' => $node->title,
+      '#availability_legend' => ding_availability_render_legend(),
+      '#legend' => isset($legend) ? $legend : NULL,
+    );
+
+    // If any search result have been found add them to the array.
+    if (!is_null($results)) {
+      $content['#results'] = array(
+        '#theme' => 'ting_search_results',
+        '#results' => $results,
+      );
+    }
+    
     // Set block content.
-    $block->content = 'test';
+    $block->content = $content;
   }
 
   return $block;

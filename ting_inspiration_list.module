@@ -82,20 +82,10 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
  * @return string
  *  Ting data well search string.
  */
-function ting_inspiration_list_build_search_query($entity, $limit_query = TRUE) {
+function ting_inspiration_list_build_search_query($entity) {
   // Get search query from the entity.
-  $items = field_get_items('node', $entity, 'field_ting_inspiration_list_search');
+  $items = field_get_items('node', $entity, 'field_inspiration_list_search');
   $query = $items[0]['value'];
-
-  // Check if limit expression should be added.
-  if ($limit_query) {
-    // Get the limit (number of months 1 to 12).
-    $items = field_get_items('node', $entity, 'field_ting_inspiration_list_limit');
-    $limit = $items[0]['value'];
-
-    // Add the limit to the query.
-    $query .= ting_inspiration_list_make_limit_query($limit);
-  }
   $query = '(' . $query . ')';
 
   return $query;
@@ -127,6 +117,105 @@ function ting_inspiration_list_make_limit_query($limit = 0) {
   return $query;
 }
 
+function ting_inspiration_list_get_raw_result($query, $number_of_objects = 100) {
+  $results = array();
+  $objects_per_request = 50;
+  $i = 0;
+  $number_of_objects_retrieved = 0;
+  do {
+    $search_result = ting_inspiration_list_do_search($query, $i, $objects_per_request);
+    if ($search_result && is_array($search_result->collections)) {
+    //file_put_contents("/home/quickstart/work/debug/debuginspiration3.txt", print_r($search_result, TRUE), FILE_APPEND);
+    //file_put_contents("/home/quickstart/work/debug/debuginspiration5.txt", print_r(count($search_result->collections) . ' ', TRUE), FILE_APPEND);
+    array_push($results, $search_result);
+    $i++;
+    $number_of_objects_retrieved .= $objects_per_request;
+    } else {
+      break; //Search results was false.
+    }
+  } while ($search_result->more && $number_of_objects_retrieved < $number_of_objects);
+  return $results;
+}
+
+function ting_inspiration_list_process_search_results($search_results) {
+  $ids = array();
+  if ($search_results) {
+    foreach ($search_results as $search_result)
+      if (is_array($search_result->collections)) {
+        foreach ($search_result->collections as $collection) {
+          foreach ($collection->reply->objects as $object) {
+              if (isset($object->ownerId) && isset($object->localId)) {
+                 $ids[$object->localId] = array (
+                   'ownerId' => $object->ownerId,
+                   'localId' => $object->localId,
+                 );
+              }
+          }
+        }
+      }
+  }
+  return $ids;
+}
+
+function ting_inspiration_list_get_availability_info($ids) {
+  $provider_ids = array();
+  foreach ($ids as $id) {
+     if ($id['ownerId'] == '773000') {
+       $provider_ids[] = $id['localId'];
+     }
+  } 
+  $availability_info = array();
+  $offset = 0;
+  if (count($provider_ids) > 0) {
+    while (count($provider_ids) > $offset) {
+      $slice = array_slice($provider_ids, $offset, 50, true);
+      $holdings = ding_provider_invoke('availability', 'holdings', $slice);
+      foreach ($holdings as $id => $holding) {
+         $availability_info[$id] = $holding;
+      }
+      $offset += 50;      
+    }
+  }
+  return $availability_info;
+}
+
+function ting_inspiration_list_process_availability($availablity_info, $ids) {
+  if ($availablity_info) {
+    foreach ($availablity_info as $id => $info) {
+      $count = 0;
+      if (isset($info['holdings'])) {
+        foreach ($info['holdings'] as $holding) {
+          if (isset($holding['total_count'])) {
+            $count += $holding['total_count'];
+          }
+        }
+        $ids[$id]['holding_count'] = $count;
+      }
+    }
+  }
+  uasort($ids, 'ting_inspiration_list_sort_holding_count');
+  return $ids;
+}
+
+function ting_inspiration_list_make_list_query($ids, $page = 0, $number_per_page = 10) {
+  $query = "";
+  $offset = ($page) * $number_per_page;
+  if (count($ids) > $offset) {
+
+    $result_ids = array_slice($ids, $offset, $number_per_page);
+    $first = true;
+    foreach ($result_ids as $id) {
+      if ($first) {
+        $query .= $id['localId'];
+        $first = false;
+      } else {
+        $query .= ' OR ' . $id['localId'];
+      }
+    }
+  }
+  return $query;
+}
+
 /**
  * Performs a query against the Data Well and returns the objects.
  *
@@ -144,7 +233,6 @@ function ting_inspiration_list_do_search($query, $page = 0, $num_per_page = 10) 
 
   // Build search options and ensure that they are sorted corretly.
   $options = array();
-  $options['sort'] = 'acquisitionDate_descending';
   $options['enrich'] = TRUE;
   $options['collectionType'] = 'manifestation';
 
@@ -157,4 +245,14 @@ function ting_inspiration_list_do_search($query, $page = 0, $num_per_page = 10) 
   }
 
   return $search_result;
+}
+
+/**
+ * Callback function for sorting by holdingcounr.
+ */
+function ting_inspiration_list_sort_holding_count($a, $b) {
+  if ($a['holding_count'] == $b['holding_count']) {
+    return 0;
+  }
+  return ($a['holding_count'] < $b['holding_count']) ? 1 : -1;
 }

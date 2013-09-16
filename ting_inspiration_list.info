@@ -13,3 +13,4 @@ dependencies[] = text
 dependencies[] = ting
 dependencies[] = ting_search
 dependencies[] = ding_availability
+dependencies[] = ting_new_materials
