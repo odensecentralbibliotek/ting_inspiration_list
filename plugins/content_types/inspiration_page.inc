@@ -103,13 +103,13 @@ function ting_inspiration_list_content_type_render($subtype, $conf, $panel_args,
 
     // Search the data well with the query and pager page.
     //$search_result = ting_inspiration_list_do_search($query, $pager_page, $num_per_page);
-    $search_results = ting_inspiration_list_get_raw_result($query);
+    $search_results = ting_inspiration_list_get_raw_result($query, 200);
     $ids = ting_inspiration_list_process_search_results($search_results);
     $availablity_info = ting_inspiration_list_get_availability_info($ids);
     $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
-    $list_query = ting_inspiration_list_make_list_query($ranked_ids);
+    $list_query = ting_inspiration_list_make_list_query($ranked_ids, 0, 10);
 
-file_put_contents("/home/quickstart/work/debug/debuginspiration8.txt", print_r($ranked_ids , TRUE), FILE_APPEND);
+file_put_contents("/home/quickstart/work/debug/debuginspiration9.txt", print_r($list_query , TRUE), FILE_APPEND);
 $list_search_result = ting_inspiration_list_do_search($list_query, 0, 10);
       $results = array();
       foreach ($list_search_result->collections as $collection) {
