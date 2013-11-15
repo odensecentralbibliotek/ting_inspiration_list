@@ -70,6 +70,27 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
 //  }
 //}
 
+function ting_inspiration_list_search_alma_query($alma_query_string, $number_of_results_to_fetch) {
+  $ids = array();
+  $alma_ids = array();
+  $start_number = 1;
+  $number_results_per_query = 50;
+  do {
+    $results = alma_search_search($alma_query_string, $start_number, $number_results_per_query);
+    $start_number = $results['stop_number'] + 1;
+    if (isset($results) && isset($results['alma_ids'])) {
+     $alma_ids = array_merge($alma_ids, $results['alma_ids']);
+    }
+  } while (isset($results) && $results['stop_number'] + 1 < $results['number_of_records_total'] && $results['stop_number'] < $number_of_results_to_fetch);
+  foreach ($alma_ids as $alma_id) {
+    $ids[$alma_id] = array(
+      'ownerId' => '773000',
+      'localId' => $alma_id,
+    );
+  }
+  return $ids ;
+}
+
 
 /**
  * Builds a search query string against the Data Well.
@@ -129,7 +150,7 @@ function ting_inspiration_list_get_raw_result($query, $number_of_objects = 100) 
     //file_put_contents("/home/quickstart/work/debug/debuginspiration5.txt", print_r(count($search_result->collections) . ' ', TRUE), FILE_APPEND);
     array_push($results, $search_result);
     $i++;
-    $number_of_objects_retrieved .= $objects_per_request;
+    $number_of_objects_retrieved += $objects_per_request;
     } else {
       break; //Search results was false.
     }
@@ -261,4 +282,34 @@ function ting_inspiration_list_sort_holding_count($a, $b) {
     return 0;
   }
   return ($a['holding_count'] < $b['holding_count']) ? 1 : -1;
+}
+
+
+/**
+ * Gets a cached block of inpiration list in desired format.
+ */
+function ting_inspiration_list_get_cached_lists($query, $format) { 
+  $cid = ting_inspiration_list_make_cache_string($query, $format);
+  file_put_contents("/home/quickstart/work/debug/debuggenrecache3.txt", print_r($cid , TRUE), FILE_APPEND);
+   if ($cache = cache_get(ting_inspiration_list_make_cache_string($query, $format), 'cache_ting_inspiration_list')) {
+     return $cache;
+   } else {
+     return null;
+   }
+}
+
+/**
+ * Sets a cached block of inpiration list in desired format.
+ */
+function ting_inspiration_list_set_cached_lists($query, $format, $block) {  
+   $cid = ting_inspiration_list_make_cache_string($query, $format);
+   // Save cache for a week.
+   cache_set($cid, $block, 'cache_ting_inspiration_list', time() + 604800);
+}
+
+/**
+ * Helper function to get CID.
+ */
+function ting_inspiration_list_make_cache_string($query, $format) {
+   return md5($query . $format);
 }

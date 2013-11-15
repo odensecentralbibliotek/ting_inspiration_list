@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Install and update routines.
+ */
+
+/**
+ * Implements hook_schema().
+ *  
+ */
+function ting_inspiration_list_schema() {
+  $schema = array();
+  $schema['cache_ting_inspiration_list'] = drupal_get_schema_unprocessed('system', 'cache');
+  return $schema;
+}

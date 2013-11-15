@@ -103,7 +103,7 @@ function ting_inspiration_list_content_type_render($subtype, $conf, $panel_args,
 
     // Search the data well with the query and pager page.
     //$search_result = ting_inspiration_list_do_search($query, $pager_page, $num_per_page);
-    $search_results = ting_inspiration_list_get_raw_result($query, 200);
+    $search_results = ting_inspiration_list_get_raw_result($query, 500);
     $ids = ting_inspiration_list_process_search_results($search_results);
     $availablity_info = ting_inspiration_list_get_availability_info($ids);
     $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
