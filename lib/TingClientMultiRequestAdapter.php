@@ -16,7 +16,6 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
 
   public function execute(TingClientRequest $requestObject) {
     $requests = $requestObject->requests ;
-    //TingClientRequest $request
     $soap_requests = array();
    
     foreach ($requests as $request) {
@@ -35,12 +34,11 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
       }
       $soap_requests[] = $this->buildSoapRequest($soapAction, $soapParameters, $client);
     }
-file_put_contents("/home/quickstart/work/debug/debuggenremultibrondsoap.txt", print_r($soap_requests, TRUE), FILE_APPEND);
     try {
       try {
         $startTime = explode(' ', microtime());
 
-        $response = curl_multi($soap_requests); //$this->make_curl_call($soap_requests);
+        $response = curl_multi($soap_requests); 
         $stopTime = explode(' ', microtime());
         $time = floatval(($stopTime[1]+$stopTime[0]) - ($startTime[1]+$startTime[0]));
 
@@ -72,9 +70,8 @@ file_put_contents("/home/quickstart/work/debug/debuggenremultibrondsoap.txt", pr
     // Initialise and configure cURL.
     $response = array();
 
-
     foreach ($requests as $request) {
-          $ch = curl_init();
+      $ch = curl_init();
       $curl_options = $request['options'];
       $curl_options[CURLOPT_URL] = $request['endpoint'];
       curl_setopt_array($ch, $curl_options);
@@ -86,9 +83,8 @@ file_put_contents("/home/quickstart/work/debug/debuggenremultibrondsoap.txt", pr
       }
       curl_close($ch);
     }
-
     // Close the cURL instance before we return.
-    return $response ;
+    return $response;
   }
   
     /**

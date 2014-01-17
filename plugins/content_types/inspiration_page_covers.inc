@@ -27,12 +27,12 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
 
     $node = $context[0]->data;
 
+    //Todo remove false from caching
     if (false && $cache = ting_inspiration_list_check_cache($node)) {
       $content = $cache->data;
     } else {
       $content = ting_inspiration_list_get_inspration_list_covers($node);
     }
-
     // Set block content.
     $block->content = $content;
   }

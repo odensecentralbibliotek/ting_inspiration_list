@@ -32,7 +32,7 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
 }
 
 function ting_inspiration_list_cron() {
-   ini_set('memory_limit', '512M'); // Set higher value if needed
+  ini_set('memory_limit', '512M'); // Set higher value if needed
   // Return all nids of nodes of type "page".
   $nids = db_select('node', 'n')
     ->fields('n', array('nid'))
@@ -45,9 +45,8 @@ function ting_inspiration_list_cron() {
 
   $queue = DrupalQueue::get('get_ting_inspiration_list');
   foreach ($nodes as $node) {
-      $items = field_get_items('node', $node, 'field_inspiration_list_search');
-  $query = $items[0]['value'];
-    file_put_contents("/home/quickstart/work/debug/debuggenrecron.txt", print_r($query . ' | ' , TRUE), FILE_APPEND);
+    $items = field_get_items('node', $node, 'field_inspiration_list_search');
+    $query = $items[0]['value'];
     //$queue->createItem($node);
     //ting_inspiration_list_get_inspration_list_covers($node);
   }
@@ -65,38 +64,44 @@ function ting_inspiration_list_cron_queue_info() {
 
 function ting_inspiration_list_get_inspration_list_covers($node) {
   $number_of_raw_results = 500;
+
   $alma_query = field_get_items('node', $node, 'field_ddelibra_inspiration_list');
   if (!empty($alma_query[0]['value'])) {
     //Use alma to get results
     $query = $alma_query[0]['value'];
     $ids = ting_inspiration_list_search_alma_query($query, $number_of_raw_results);
   } else {
-    //Use the datawell to get results
-    // Build search query based on node fields.
-   $startTime = explode(' ', microtime());
+    //Use the datawell to get results. Build search query based on node fields.
+
+    $startTime = explode(' ', microtime());
 
     $query = ting_inspiration_list_build_search_query($node);
     $raw_search_results = ting_inspiration_list_get_raw_result($query, $number_of_raw_results);
-       $stopTime = explode(' ', microtime());
-      $seconds = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
-  file_put_contents("/home/quickstart/work/debug/debuggenremultibrondtid.txt", print_r($seconds . ' | ', TRUE), FILE_APPEND);
+    $stopTime = explode(' ', microtime());
+    $seconds = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
+    file_put_contents("/home/quickstart/work/debug/debuggenremultibrondtid.txt", print_r($seconds . ' | ', TRUE), FILE_APPEND);
     $ids = ting_inspiration_list_process_search_results($raw_search_results);
-
   }
 
- $startTime = explode(' ', microtime());
+  $startTime = explode(' ', microtime());
   $availablity_info = ting_inspiration_list_get_availability_info($ids);
-          $stopTime = explode(' ', microtime());
-      $seconds = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
+  $stopTime = explode(' ', microtime());
+  $seconds = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
   file_put_contents("/home/quickstart/work/debug/debuggenremultialma.txt", print_r($seconds . ' | ', TRUE), FILE_APPEND);
 
   $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
   $list_query = ting_inspiration_list_make_list_query($ranked_ids, 0, 20);
-
-  //file_put_contents("/home/quickstart/work/debug/debuggenre.txt", print_r($ranked_ids , TRUE), FILE_APPEND);
   $search_result = ting_inspiration_list_do_search($list_query, 0, 20);
+
+
+  $content = ting_inspiration_list_build_search_result($search_result, $node);
+  ting_inspiration_list_set_cached_lists($query, 'cover15', $content);
+  return $content;
+}
+
+function ting_inspiration_list_build_search_result($search_result, $node) {
+     $results = NULL;
   // Check if the search return any results.
-  $results = NULL;
   if ($search_result->numTotalObjects > 0) {
     $cover_ids = array();
     foreach ($search_result->collections as $collection) {
@@ -121,7 +126,6 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
         // Add the result to an array for the "ting_search_results" theme
         // function.      
         $image = theme('ting_object_cover', array('elements' => array('#object' => $collection->primary_object, '#image_style' => 'ting_new_materials_cover')));
-        //$snippet = drupal_render($build);
         $options = array(
           'html' => TRUE,
           'attributes' => array('title' => $collection->title),
@@ -152,7 +156,6 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
       '#results' => $results,
     );
   }
-  ting_inspiration_list_set_cached_lists($query, 'cover15', $content);
   return $content;
 }
 
@@ -198,31 +201,7 @@ function ting_inspiration_list_build_search_query($entity) {
   return $query;
 }
 
-/**
- * Limit a search query expression to a specified number of months.
- *
- * @param int $limit
- *  The number of months back to limit the results.  Min 1 and max 12 month. 0
- *  means unlimited.
- * @return string $query
- *  The limit by month search query expression.
- */
-function ting_inspiration_list_make_limit_query($limit = 0) {
-  $query = "";
 
-  if ($limit > 0) {
-    // Get current date (defaults to now).
-    $date = new DateTime();
-    $query = ' AND sort.acquisitionDate=(' . $date->format('Ym') . '*';
-    for ($i = 1; $i <= $limit; $i++) {
-      $date->sub(date_interval_create_from_date_string('1 month'));
-      $query .= ' OR ' . $date->format('Ym') . '*';
-    }
-    $query .= ')';
-  }
-
-  return $query;
-}
 
 function ting_inspiration_list_get_raw_result($query, $number_of_objects = 100) {
   module_load_include('client.inc', 'ting_inspiration_list');
@@ -364,7 +343,6 @@ function ting_inspiration_list_sort_holding_count($a, $b) {
  */
 function ting_inspiration_list_get_cached_lists($query, $format) { 
   $cid = ting_inspiration_list_make_cache_string($query, $format);
-  file_put_contents("/home/quickstart/work/debug/debuggenrecache3.txt", print_r($cid , TRUE), FILE_APPEND);
    if ($cache = cache_get(ting_inspiration_list_make_cache_string($query, $format), 'cache_ting_inspiration_list')) {
      return $cache;
    } else {

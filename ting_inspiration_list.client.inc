@@ -41,6 +41,7 @@ function ting_inspiration_list_do_parallel_search($query, $num_results = 200) {
   return $search_result;
 }
 
+
 function ting_inspiration_list_build_request($query, $page = 1, $results_per_page = 50, $options = array()) {
   $request = ting_get_request_factory()->getSearchRequest();
   $request->setQuery($query);
