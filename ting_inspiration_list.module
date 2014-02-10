@@ -44,31 +44,48 @@ function ting_inspiration_list_init() {
 }
 
 function ting_inspiration_list_cron() {
-  ini_set('memory_limit', '512M'); // Set higher value if needed
-  // Return all nids of nodes of type "page".
-  $nids = db_select('node', 'n')
-    ->fields('n', array('nid'))
-    ->fields('n', array('type'))
-    ->condition('n.type', 'genre_page')
-    ->execute()
-    ->fetchCol(); // returns an indexed array
-// Now return the node objects.
-  $nodes = node_load_multiple($nids);
-
-  $queue = DrupalQueue::get('get_ting_inspiration_list');
-  foreach ($nodes as $node) {
-    $items = field_get_items('node', $node, 'field_inspiration_list_search');
-    $query = $items[0]['value'];
-    //$queue->createItem($node);
-    //ting_inspiration_list_get_inspration_list_covers($node);
-  }
+  // We only want to update the cache once a night between 00:00 and 06:00.
+  $hour = date('G');
+  if ($hour >= 0 && $hour <= 6) {
+    ini_set('memory_limit', '512M'); // Is this needed?
+    // Check to see if tonights updates already have been run.
+    $month = date('n');
+    $day = date('j');
+    $year = date('Y');
+    $midnight_time = mktime(0, 0, 0, $month, $day, $year);    
+    $query = db_select('cache_history_ting_term_list', 'chttl')
+      ->fields('chttl', array('nid', 'time'))
+      ->condition('time', $midnight_time, '>=');
+    $cache_history_count = $query->countQuery()->execute()->fetchField();
+    $queue = DrupalQueue::get('ting_term_list_cache_queue');
+    // If there was no cache updates for tonight in the history and the queue
+    // is empty, we go ahead and start tonights updates. 
+    if ($cache_history_count == 0 && $queue->numberOfItems() == 0) {
+      $cache_amount = _ting_term_list_get_cache_amount();
+      $query = db_select('cache_ting_term_list', 'cttl')
+        ->fields('cttl', array('cid', 'created'))
+        ->orderBy('created', 'ASC')
+        ->range(0, $cache_amount);
+      $result = $query->execute();
+      foreach ($result as $record) {
+        $nid = _ting_term_list_get_nid_from_cid($record->cid);
+        $node = node_load($nid);
+        $queue->createItem($node);
+      }
+    }
+    // Clean up old rows from the history table.
+    $history_treshold = time() - (30 * 24 * 3600);
+    $query = db_delete('cache_history_ting_term_list')
+      ->condition('time', $history_treshold, '<');
+    $delete_count = $query->execute();
+  }  
 }
 
 
 function ting_inspiration_list_cron_queue_info() {
   $queues['get_ting_inspiration_list'] = array(
     'worker callback' => 'ting_inspiration_list_get_inspration_list_covers',
-    'time' => 1000,
+    'time' => 600,
   );
   return $queues;
 }
