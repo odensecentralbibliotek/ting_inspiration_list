@@ -36,6 +36,13 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
   );
 }
 
+function ting_inspiration_list_init() {
+
+  $test = 'En lille test...';
+  //cache_clear_all('*', 'cache_ting_inspiration_list', TRUE);
+  //file_put_contents("/home/drupalpro/debug/debuginsplist.txt", print_r($cids , TRUE), FILE_APPEND);
+}
+
 function ting_inspiration_list_cron() {
   ini_set('memory_limit', '512M'); // Set higher value if needed
   // Return all nids of nodes of type "page".
@@ -89,7 +96,7 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
   $search_result = ting_inspiration_list_do_search($list_query, 0, 20);
 
   $content = ting_inspiration_list_build_search_result($search_result, $node);
-  ting_inspiration_list_set_cached_lists($query, 'cover15', $content);
+  ting_inspiration_list_set_cached_lists($node, 'cover15', $content);
   return $content;
 }
 
@@ -347,8 +354,8 @@ function ting_inspiration_list_get_cached_lists($query, $format) {
 /**
  * Sets a cached block of inpiration list in desired format.
  */
-function ting_inspiration_list_set_cached_lists($query, $format, $block) {  
-   $cid = ting_inspiration_list_make_cache_string($query, $format);
+function ting_inspiration_list_set_cached_lists($node, $format, $block) {  
+   $cid = ting_inspiration_list_make_cache_string($node, $format);
    // Save cache for a week.
    cache_set($cid, $block, 'cache_ting_inspiration_list', time() + 604800);
 }
@@ -356,8 +363,8 @@ function ting_inspiration_list_set_cached_lists($query, $format, $block) {
 /**
  * Helper function to get CID.
  */
-function ting_inspiration_list_make_cache_string($query, $format) {
-   return md5($query . $format);
+function ting_inspiration_list_make_cache_string($node, $format) {
+   return md5($node->nid . $format);
 }
 
 function ting_inspiration_list_check_covers($covers_ids) {

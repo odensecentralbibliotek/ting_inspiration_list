@@ -12,5 +12,33 @@
 function ting_inspiration_list_schema() {
   $schema = array();
   $schema['cache_ting_inspiration_list'] = drupal_get_schema_unprocessed('system', 'cache');
+	$schema['cache_history_ting_inspiration_list'] = array(
+		'description' => 'Keeps track of nightly cache updates of inspiration lists',
+		'fields' => array(
+			'nid' => array(
+				'description' => 'The ID of the inspiration list node that was cached',
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0,
+			),
+			'time' => array(
+				'description' => 'The time the nightly cache update was completed',
+				'type' => 'int',
+				'not null' => TRUE,
+				'default' => 0,
+			),
+		),
+		'primary key' => array('nid', 'time'),
+		'foreign keys' => array(
+			'node' => array(
+				'table' => 'node',
+				'columns' => array('nid' => 'nid'),
+			),
+		), 
+		'indexes' => array(
+			'time' => array('time'),
+		),
+	);  
   return $schema;
 }
