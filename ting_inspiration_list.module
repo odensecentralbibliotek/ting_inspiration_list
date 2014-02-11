@@ -320,7 +320,6 @@ function ting_inspiration_list_get_availability_info($ids) {
       $availability_info[$id] = $holding;
     }
   }
-  file_put_contents("/home/drupalpro/debug/debug.txt", print_r($availability_info , TRUE), FILE_APPEND);
   return $availability_info;
 }
 
