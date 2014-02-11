@@ -64,7 +64,7 @@ function ting_inspiration_list_init() {
 
 function ting_inspiration_list_cron() {
   // We only want to update the cache once a night between 00:00 and 06:00.
-  $hour = date('G');
+  $hour = 2;//date('G');
   if ($hour >= 0 && $hour <= 6) {
     ini_set('memory_limit', '512M'); // Is this needed?
     // Check to see if tonights updates already have been run.
@@ -93,7 +93,7 @@ function ting_inspiration_list_cron() {
       }
     }
     // Clean up old rows from the history table.
-    $history_treshold = time() - (30 * 24 * 3600);
+    $history_treshold = time() - (30 * 24 * 3600);  
     $query = db_delete('cache_history_ting_inspiration_list')
       ->condition('time', $history_treshold, '<');
     $delete_count = $query->execute();
@@ -165,6 +165,13 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
 
   $content = ting_inspiration_list_build_search_result($search_result, $node);
   ting_inspiration_list_set_cached_lists($node, $content);
+  // Update the cache history table.
+  $query = db_insert('cache_history_ting_inspiration_list');
+  $query->fields(array(
+    'nid' => $node->nid,
+    'time' => time(),
+  ));
+  $query->execute();  
   return $content;
 }
 
@@ -313,6 +320,7 @@ function ting_inspiration_list_get_availability_info($ids) {
       $availability_info[$id] = $holding;
     }
   }
+  file_put_contents("/home/drupalpro/debug/debug.txt", print_r($availability_info , TRUE), FILE_APPEND);
   return $availability_info;
 }
 
