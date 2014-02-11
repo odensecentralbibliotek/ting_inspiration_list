@@ -30,30 +30,18 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
     //Todo remove false from caching
     $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
     $cache = cache_get($cid, 'cache_ting_inspiration_list');
-    if ($cache && ($cache->expire > REQUEST_TIME) {
+    if ($cache && ($cache->expire > REQUEST_TIME)) {
       $content = $cache->data;
+      file_put_contents("/home/drupalpro/debug/debug.txt", print_r($content , TRUE), FILE_APPEND);
     } else {
       $content = ting_inspiration_list_get_inspration_list_covers($node);
+      file_put_contents("/home/drupalpro/debug/debug.txt", print_r($content , TRUE), FILE_APPEND);
     }
     // Set block content.
     $block->content = $content;
   }
 
   return $block;
-}
-
-
-/**
- * Check cache
- */
-function ting_inspiration_list_check_cache($node) {
-  $alma_query = field_get_items('node', $node, 'field_ddelibra_inspiration_list');
-  if (!empty($alma_query[0]['value'])) {
-    $query = $alma_query[0]['value'];
-  } else {
-    $query = ting_inspiration_list_build_search_query($node);
-  }
-  return ting_inspiration_list_get_cached_lists($query, 'cover15');;
 }
 
 /**

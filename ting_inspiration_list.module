@@ -4,7 +4,10 @@
  * Enables listing the newest materials .
  */
 
-//include_once 'ting_inspiration_list.features.inc';
+// Default cache lifetime for term list (10 days).
+define('TING_INSPIRATION_LIST_DEFAULT_CACHE_LIFETIME', 10); 
+// Default amount of term lists to cache each night.
+define('TING_INSPIRATION_LIST_DEFAULT_CACHE_AMOUNT', 5); 
 
 /**
  * Implements hook_ctools_plugin_directory().
@@ -42,7 +45,7 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
 function ting_inspiration_list_menu() {
   $items = array();
   $items['admin/config/ting/inspiration-list'] = array(
-    'title' => 'inspiration list settings',
+    'title' => 'Inspiration list settings',
     'description' => t('Manage settings for the ting inpiration list module.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ting_inspiration_list_admin_form'),
@@ -102,7 +105,7 @@ function ting_inspiration_list_cron() {
  */
 function _ting_inspiration_list_get_cache_amount() {
   return variable_get('ting_inspiration_list_cache_amount', 
-    TING_TERM_LIST_DEFAULT_CACHE_AMOUNT);
+    TING_INSPIRATION_LIST_DEFAULT_CACHE_AMOUNT);
 }
 
 /**
@@ -425,20 +428,6 @@ function ting_inspiration_list_set_cached_lists($node, $block) {
   cache_set($cid, $block, 'cache_ting_inspiration_list', time() + 604800);
 }
 
-/**
- * Helper function to get CID.
- */
-function ting_inspiration_list_make_cache_string($node, $format) {
-   return md5($node->nid . $format);
-}
-
-/**
- * Helper function to get nid from cid.
- */
-function _ting_inspiration_list_get_nid_from_cid($cid) {
-  $cid_explode = explode(':', $cid);
-  return (isset($cid_explode[1]) ? $cid_explode[1] : 0);
-}
 
 function ting_inspiration_list_check_covers($covers_ids) {
   $result_ids = array();
