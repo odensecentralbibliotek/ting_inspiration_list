@@ -39,6 +39,18 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_menu().
  */
+function ting_inspiration_list_menu() {
+  $items = array();
+  $items['admin/config/ting/inspiration-list'] = array(
+    'title' => 'inspiration list settings',
+    'description' => t('Manage settings for the ting inpiration list module.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ting_inspiration_list_admin_form'),
+    'access arguments' => array('administer ting settings'),
+    'file' => 'ting_inspiration_list.admin.inc',
+  );
+  return $items;  
+}
 
 function ting_inspiration_list_init() {
 
