@@ -28,7 +28,9 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
     $node = $context[0]->data;
 
     //Todo remove false from caching
-    if (false && $cache = ting_inspiration_list_check_cache($node)) {
+    $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
+    $cache = cache_get($cid, 'cache_ting_inspiration_list');
+    if ($cache && ($cache->expire > REQUEST_TIME) {
       $content = $cache->data;
     } else {
       $content = ting_inspiration_list_get_inspration_list_covers($node);

@@ -36,6 +36,10 @@ function ting_inspiration_list_theme($existing, $type, $theme, $path) {
   );
 }
 
+/**
+ * Implements hook_menu().
+ */
+
 function ting_inspiration_list_init() {
 
   $test = 'En lille test...';
@@ -53,37 +57,69 @@ function ting_inspiration_list_cron() {
     $day = date('j');
     $year = date('Y');
     $midnight_time = mktime(0, 0, 0, $month, $day, $year);    
-    $query = db_select('cache_history_ting_term_list', 'chttl')
-      ->fields('chttl', array('nid', 'time'))
+    $query = db_select('cache_history_ting_inspiration_list', 'chtil')
+      ->fields('chtil', array('nid', 'time'))
       ->condition('time', $midnight_time, '>=');
     $cache_history_count = $query->countQuery()->execute()->fetchField();
-    $queue = DrupalQueue::get('ting_term_list_cache_queue');
+    $queue = DrupalQueue::get('ting_inspiration_list_cache_queue');
     // If there was no cache updates for tonight in the history and the queue
     // is empty, we go ahead and start tonights updates. 
     if ($cache_history_count == 0 && $queue->numberOfItems() == 0) {
-      $cache_amount = _ting_term_list_get_cache_amount();
-      $query = db_select('cache_ting_term_list', 'cttl')
-        ->fields('cttl', array('cid', 'created'))
+      $cache_amount = _ting_inspiration_list_get_cache_amount();
+      $query = db_select('cache_ting_inspiration_list', 'ctil')
+        ->fields('ctil', array('cid', 'created'))
         ->orderBy('created', 'ASC')
         ->range(0, $cache_amount);
       $result = $query->execute();
       foreach ($result as $record) {
-        $nid = _ting_term_list_get_nid_from_cid($record->cid);
+        $nid = _ting_inspiration_list_get_nid_from_cid($record->cid);
         $node = node_load($nid);
         $queue->createItem($node);
       }
     }
     // Clean up old rows from the history table.
     $history_treshold = time() - (30 * 24 * 3600);
-    $query = db_delete('cache_history_ting_term_list')
+    $query = db_delete('cache_history_ting_inspiration_list')
       ->condition('time', $history_treshold, '<');
     $delete_count = $query->execute();
   }  
 }
 
+/**
+ * Helper function to fetch cache amount from the database.
+ */
+function _ting_inspiration_list_get_cache_amount() {
+  return variable_get('ting_inspiration_list_cache_amount', 
+    TING_TERM_LIST_DEFAULT_CACHE_AMOUNT);
+}
+
+/**
+ * Helper function to fetch cache lifetime from the database.
+ */
+function _ting_inpiration_list_get_cache_lifetime() {
+  $cache_lifetime = variable_get('ting_inspiration_list_cache_lifetime', 
+    TING_TERM_LIST_DEFAULT_CACHE_AMOUNT);
+  return ($cache_lifetime * 24 * 60 * 60);
+}
+
+/**
+ * Helper function to get cid from nid.
+ */
+function _ting_inspiration_list_get_cid_from_nid($nid) {
+  return 'ting_inspiration_list:' . $nid;
+}
+
+/**
+ * Helper function to get nid from cid.
+ */
+function _ting_inspiration_list_get_nid_from_cid($cid) {
+  $cid_explode = explode(':', $cid);
+  return (isset($cid_explode[1]) ? $cid_explode[1] : 0);
+}
+
 
 function ting_inspiration_list_cron_queue_info() {
-  $queues['get_ting_inspiration_list'] = array(
+  $queues['ting_inspiration_list_cache_queue'] = array(
     'worker callback' => 'ting_inspiration_list_get_inspration_list_covers',
     'time' => 600,
   );
@@ -113,7 +149,7 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
   $search_result = ting_inspiration_list_do_search($list_query, 0, 20);
 
   $content = ting_inspiration_list_build_search_result($search_result, $node);
-  ting_inspiration_list_set_cached_lists($node, 'cover15', $content);
+  ting_inspiration_list_set_cached_lists($node, $content);
   return $content;
 }
 
@@ -371,10 +407,10 @@ function ting_inspiration_list_get_cached_lists($query, $format) {
 /**
  * Sets a cached block of inpiration list in desired format.
  */
-function ting_inspiration_list_set_cached_lists($node, $format, $block) {  
-   $cid = ting_inspiration_list_make_cache_string($node, $format);
-   // Save cache for a week.
-   cache_set($cid, $block, 'cache_ting_inspiration_list', time() + 604800);
+function ting_inspiration_list_set_cached_lists($node, $block) {
+  $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
+  // Save cache for a week.
+  cache_set($cid, $block, 'cache_ting_inspiration_list', time() + 604800);
 }
 
 /**
@@ -382,6 +418,14 @@ function ting_inspiration_list_set_cached_lists($node, $format, $block) {
  */
 function ting_inspiration_list_make_cache_string($node, $format) {
    return md5($node->nid . $format);
+}
+
+/**
+ * Helper function to get nid from cid.
+ */
+function _ting_inspiration_list_get_nid_from_cid($cid) {
+  $cid_explode = explode(':', $cid);
+  return (isset($cid_explode[1]) ? $cid_explode[1] : 0);
 }
 
 function ting_inspiration_list_check_covers($covers_ids) {

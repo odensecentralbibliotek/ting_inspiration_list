@@ -42,3 +42,22 @@ function ting_inspiration_list_schema() {
 	);  
   return $schema;
 }
+
+/**
+ * Implements hook_install().
+ */
+function ting_inspiration_list_install() {
+	
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ting_inspiration_list_uninstall() {
+	if (db_table_exists('cache_ting_inspiration_list')) {
+		db_drop_table('cache_ting_inspiration_list');
+	}	
+	if (db_table_exists('cache_history_ting_inspiration_list')) {
+		db_drop_table('cache_history_ting_inspiration_list');
+	}
+}
