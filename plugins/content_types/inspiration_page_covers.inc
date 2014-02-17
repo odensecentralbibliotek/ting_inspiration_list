@@ -36,6 +36,7 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
       $content = ting_inspiration_list_get_inspration_list_covers($node);
     }
     // Set block content.
+    drupal_add_js(drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js');
     $block->content = $content;
   }
 
