@@ -64,7 +64,7 @@ function ting_inspiration_list_init() {
 
 function ting_inspiration_list_cron() {
   // We only want to update the cache once a night between 00:00 and 06:00.
-  $hour = 2;//date('G');
+  $hour = 2; //date('G');
   if ($hour >= 0 && $hour <= 6) {
     ini_set('memory_limit', '512M'); // Is this needed?
     // Check to see if tonights updates already have been run.

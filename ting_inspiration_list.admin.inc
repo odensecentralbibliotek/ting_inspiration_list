@@ -9,7 +9,7 @@
 /**
  * Form builder for 'admin/config/ting/term-list' route.
  */
-function ting_term_list_admin_form($form, &$form_state) {
+function ting_inspiration_list_admin_form($form, &$form_state) {
  	// Cache settings
 	$form['cache_settings'] = array(
 		'#type' => 'fieldset',
@@ -25,7 +25,7 @@ function ting_term_list_admin_form($form, &$form_state) {
 		'#title' => t('Cache lifetime'),
 		'#description' => t('Select the amount of time term lists should be cached'),
 		'#default_value' => variable_get('ting_inspiration_list_cache_lifetime', 
-			TING_INPIRATION_LIST_DEFAULT_CACHE_LIFETIME),
+			TING_INSPIRATION_LIST_DEFAULT_CACHE_LIFETIME),	
 		'#options' => $options,
 	);
 	$options = array();
@@ -49,10 +49,10 @@ function ting_term_list_admin_form($form, &$form_state) {
 		array('data' => t('Time'), 'field' => 'chttl.time'),
 	);
 	$query = db_select('node', 'n')->extend('TableSort');
-	$query->join('cache_history_ting_term_list', 'chttl', 'n.nid = chttl.nid');
+	$query->join('cache_history_ting_inspiration_list', 'chtil', 'n.nid = chtil.nid');
 	$query->addField('n', 'nid', 'nid');
 	$query->addField('n', 'title', 'title');
-	$query->addField('chttl', 'time', 'time');
+	$query->addField('chtil', 'time', 'time');
 	$query->orderBy('time', 'DESC');
 	$result = $query->orderByHeader($header)->execute();
 	$rows = array();
