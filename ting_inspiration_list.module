@@ -113,7 +113,7 @@ function _ting_inspiration_list_get_cache_amount() {
  */
 function _ting_inpiration_list_get_cache_lifetime() {
   $cache_lifetime = variable_get('ting_inspiration_list_cache_lifetime', 
-    TING_TERM_LIST_DEFAULT_CACHE_AMOUNT);
+    TING_INSPIRATION_LIST_DEFAULT_CACHE_AMOUNT);
   return ($cache_lifetime * 24 * 60 * 60);
 }
 
