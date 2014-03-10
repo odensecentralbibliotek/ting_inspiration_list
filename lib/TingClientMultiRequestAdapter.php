@@ -149,7 +149,7 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
      // CURLOPT_URL => $url,
       CURLOPT_USERAGENT => $agent,
       CURLOPT_RETURNTRANSFER => TRUE,
-      CURLOPT_PROXY => '172.18.0.40:8080' //Todo remove developercode
+      CURLOPT_PROXY => '172.18.0.30:8080' //Todo remove developercode
     );
 
     if ($method == 'POST') {

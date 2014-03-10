@@ -143,7 +143,7 @@ function ting_inspiration_list_cron_queue_info() {
 
 
 function ting_inspiration_list_get_inspration_list_covers($node) {
-  $number_of_raw_results = 500;
+  $number_of_raw_results = ting_inspiration_list_number_of_raw_result($node);
   $alma_query = field_get_items('node', $node, 'field_ddelibra_inspiration_list');
   if (!empty($alma_query[0]['value'])) {
     //Use alma to get results
@@ -160,8 +160,10 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
 
   $availablity_info = ting_inspiration_list_get_availability_info($ids);
   $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
-  $list_query = ting_inspiration_list_make_list_query($ranked_ids, 0, 20);
-  $search_result = ting_inspiration_list_do_search($list_query, 0, 20);
+
+  $number_of_objects = ting_inspiration_list_number_of_objects($node) * 2;
+  $list_query = ting_inspiration_list_make_list_query($ranked_ids, 0, $number_of_objects);
+  $search_result = ting_inspiration_list_do_search($list_query, 0, $number_of_objects);
 
   $content = ting_inspiration_list_build_search_result($search_result, $node);
   ting_inspiration_list_set_cached_lists($node, $content);
@@ -188,7 +190,7 @@ function ting_inspiration_list_build_search_result($search_result, $node) {
     }
     $cover_result_ids = ting_inspiration_list_check_covers($cover_ids);
 
-    $number_of_objects = 15;
+    $number_of_objects = ting_inspiration_list_number_of_objects($node);
     $number_found = 0;
     $results = array();
 
@@ -233,6 +235,27 @@ function ting_inspiration_list_build_search_result($search_result, $node) {
     );
   }
   return $content;
+}
+
+function ting_inspiration_list_number_of_objects($node) {
+  $number_per_row = variable_get('ting_genre_pages_default_number_per_row', 7);
+  $number_of_rows = 3;
+
+  $items = field_get_items('node', $node, 'field_inspiration_list_row_count');
+  if (isset($items) && is_array($items) && isset($items[0]['value'])) {
+    $number_of_rows = $items[0]['value'];
+  }
+  return $number_of_rows * $number_per_row;
+}
+
+function ting_inspiration_list_number_of_raw_result($node) {
+  $items = field_get_items('node', $node, 'field_inspiration_list_raw_count');
+  if (isset($items) && is_array($items) && isset($items[0]['value'])) {
+    $number_of_raw_results = $items[0]['value'];
+  } else {
+    $number_of_raw_results = variable_get('ting_genre_pages_default_number_raw_results', 200);
+  }
+  return $number_of_raw_results;
 }
 
 function ting_inspiration_list_search_alma_query($alma_query_string, $number_of_results_to_fetch) {
@@ -512,7 +535,7 @@ function ting_inspiration_list_fetch_image($filename, $image_url) {
 function ting_inspiration_list_get_by_curl ($url) {
 $agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.8) Gecko/2009032609 Firefox/3.0.8';
 $curl_handle=curl_init();
-curl_setopt($curl_handle, CURLOPT_PROXY, '172.18.0.40:8080');
+curl_setopt($curl_handle, CURLOPT_PROXY, '172.18.0.30:8080');
 curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($curl_handle, CURLOPT_USERAGENT, $agent);
 curl_setopt($curl_handle,CURLOPT_URL, $url);
