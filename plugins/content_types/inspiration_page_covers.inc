@@ -30,14 +30,14 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
     //Todo remove false from caching
     $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
     $cache = cache_get($cid, 'cache_ting_inspiration_list');
-    if (false && $cache && ($cache->expire > REQUEST_TIME)) {
-      $content = $cache->data;
+    if ( $cache && ($cache->expire > REQUEST_TIME)) {
+      $cached_results = $cache->data;
     } else {
-      $content = ting_inspiration_list_get_inspration_list_covers($node);
+      $cached_results = ting_inspiration_list_get_inspration_list_covers($node);
     }
     // Set block content.
     drupal_add_js(drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js');
-    $block->content = $content;
+    $block->content = ting_inspiration_list_render_cover($cached_results, $node);
   }
 
   return $block;
