@@ -234,7 +234,7 @@ function ting_inspiration_list_render_cover($cached_results, $node) {
     // Set default page result.
   $content = array(
     '#theme' => 'ting_new_materials',
-    '#title' => $node->title,
+    '#title' => t('Inspiration'),
     '#availability_legend' => NULL,
     '#legend' => isset($legend) ? $legend : NULL,
   );
