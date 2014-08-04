@@ -160,11 +160,9 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
     $ids = ting_inspiration_list_search_alma_query($query, $number_of_raw_results);
   } else {
     //Use the datawell to get results. Build search query based on node fields.
-
     $query = ting_inspiration_list_build_search_query($node);
     $raw_search_results = ting_inspiration_list_get_raw_result($query, $number_of_raw_results);  
     $ids = ting_inspiration_list_process_search_results($raw_search_results);
-
   }
   
   $availablity_info = ting_inspiration_list_get_availability_info($ids);
@@ -352,9 +350,7 @@ function ting_inspiration_list_process_search_results($search_results) {
 function ting_inspiration_list_get_availability_info($ids) {
   $provider_ids = array();
   foreach ($ids as $id) {
-    if ($id['ownerId'] == '773000') {
-      $provider_ids[] = $id['localId'];
-    }
+    $provider_ids[] = $id['localId'];
   }
   $availability_info = array();
   $offset = 0;
