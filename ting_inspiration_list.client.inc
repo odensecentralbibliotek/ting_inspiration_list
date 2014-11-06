@@ -48,7 +48,7 @@ function ting_inspiration_list_build_request($query, $page = 1, $results_per_pag
   if ($agency = variable_get('ting_agency', FALSE)) {
     $request->setAgency($agency);
   }
-
+$request->setSort('date_descending');
   $request->setStart($results_per_page * ($page - 1) + 1);
   $request->setNumResults($results_per_page);
 

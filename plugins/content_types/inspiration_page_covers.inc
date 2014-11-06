@@ -26,8 +26,10 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
   if (isset($context[0]->data) && ($context[0]->data->type == 'ting_inspiration_list' || $context[0]->data->type == 'genre_page')) {
 
     $node = $context[0]->data;
-
-    //Todo remove false from caching
+    if (ting_inspiration_list_no_search_query($node)) {
+      return $block;
+    }
+    
     $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
     $cache = cache_get($cid, 'cache_ting_inspiration_list');
     if ( $cache && ($cache->expire > REQUEST_TIME)) {
@@ -41,6 +43,12 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
   }
 
   return $block;
+}
+
+function ting_inspiration_list_no_search_query($node) {
+  $alma_query = field_get_items('node', $node, 'field_ddelibra_inspiration_list');
+  $well_query = field_get_items('node', $node, 'field_inspiration_list_search');
+  return (empty($alma_query[0]['value']) && empty($well_query[0]['value']));
 }
 
 /**

@@ -57,6 +57,7 @@ function ting_inspiration_list_admin_form($form, &$form_state) {
 	$result = $query->orderByHeader($header)->execute();
 	$rows = array();
 	foreach ($result as $row) {
+    $row->time = date(DATE_FORMAT_DATETIME, $row->time);
 		$rows[] = array('data' => (array) $row);
 	}
 	$table = array(
