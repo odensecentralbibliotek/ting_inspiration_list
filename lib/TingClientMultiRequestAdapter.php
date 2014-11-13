@@ -1,6 +1,7 @@
 <?php
 
 class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
+
   /**
    * @var TingClientLogger
    */
@@ -15,11 +16,11 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
   }
 
   public function execute(TingClientRequest $requestObject) {
-    $requests = $requestObject->requests ;
+    $requests = $requestObject->requests;
     $soap_requests = array();
-   
+
     foreach ($requests as $request) {
-      
+
       $client = new NanoSOAPClient($request->getWsdlUrl());
       //Prepare the parameters for the SOAP request
       $request->getRequest();
@@ -38,9 +39,9 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
       try {
         $startTime = explode(' ', microtime());
 
-        $response = curl_multi($soap_requests); 
+        $response = $this->curl_multi($soap_requests);
         $stopTime = explode(' ', microtime());
-        $time = floatval(($stopTime[1]+$stopTime[0]) - ($startTime[1]+$startTime[0]));
+        $time = floatval(($stopTime[1] + $stopTime[0]) - ($startTime[1] + $startTime[0]));
 
         $this->logger->log('Completed SOAP request ' . $soapAction . ' ' . $request->getWsdlUrl() . ' (' . round($time, 3) . 's). Request body: ' . $client->requestBodyString . ' Response: ' . $response);
 
@@ -51,8 +52,7 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
             $result[] = json_decode($res);
           }
           return $result;
-        }
-        else {
+        } else {
           return $response;
         }
       } catch (NanoSOAPcURLException $e) {
@@ -61,11 +61,11 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
         throw new TingClientException($e->getMessage(), $e->getCode());
       }
     } catch (TingClientException $e) {
-      $this->logger->log('Error handling SOAP request ' . $soapAction . ' ' . $request->getWsdlUrl() .': '. $e->getMessage());
+      $this->logger->log('Error handling SOAP request ' . $soapAction . ' ' . $request->getWsdlUrl() . ': ' . $e->getMessage());
       throw $e;
     }
   }
-  
+
   private function make_curl_call($requests) {
     // Initialise and configure cURL.
     $response = array();
@@ -86,8 +86,8 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
     // Close the cURL instance before we return.
     return $response;
   }
-  
-    /**
+
+  /**
    * Make a SOAP request.
    *
    * @param string $action
@@ -121,8 +121,8 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
     // Send the SOAP request to the server via CURL.
     return $this->buildCurlRequest($client->endpoint, 'POST', $client->requestBodyString, $headers);
   }
-  
-    /**
+
+  /**
    * Make a cURL request.
    *
    * This is usually a SOAP request, but could ostensibly be used for 
@@ -140,13 +140,13 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
    *   The response for the server, or FALSE on failure.
    */
   function buildCurlRequest($url, $method = 'GET', $body = '', $headers = array()) {
-    $curl_session = array();    
+    $curl_session = array();
     $curl_session['endpoint'] = $url;
     // Array of cURL options. See the documentation for curl_setopt for 
     // details on what options are available.
     $agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.8) Gecko/2009032609 Firefox/3.0.8';
     $curl_options = array(
-     // CURLOPT_URL => $url,
+      // CURLOPT_URL => $url,
       CURLOPT_USERAGENT => $agent,
       CURLOPT_RETURNTRANSFER => TRUE,
       CURLOPT_PROXY => '172.18.0.30:8080' //Todo remove developercode
@@ -162,7 +162,54 @@ class TingClientMultiRequestAdapter extends TingClientRequestAdapter {
     if (!empty($headers)) {
       $curl_options[CURLOPT_HTTPHEADER] = $headers;
     }
-   $curl_session['options'] = $curl_options;    
-   return $curl_session;
+    $curl_session['options'] = $curl_options;
+    return $curl_session;
   }
+  
+
+   /**
+   * Make a cURL multi request.
+   * Taken from the curl_multi module
+   *
+   * @param array $sessions
+   *   Curl sessions.
+   * @param int $retry
+   *   How often to retry.
+   * @return array
+   *   The response for the server.
+   */
+  function curl_multi($sessions, $retry = 0) {
+    $curl = new curl();
+    $curl->retry = $retry;
+    // Default options
+
+    if (is_array($sessions)) {
+      foreach ($sessions as $session) {
+        $options = array(
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_FOLLOWLOCATION => true
+        );
+        // Merge in default options with session options
+        if (isset($session['options'])) {
+          $options += $session['options'];
+        }
+        $curl->addSession($session['endpoint'], $options);
+      }
+      $result = $curl->exec();
+      if (count(array_filter($curl->error()))) {
+        foreach ($curl->error() as $delta => $error) {
+          // Check strlen as curl multi returns empty errors so the array matches up with the sessions
+          if (strlen($error)) {
+            watchdog('curl_multi', 'Error !error calling !endpoint', array(
+              '!error' => $error,
+              '!endpoint' => $sessions[$delta]['endpoint']
+              ), WATCHDOG_ERROR);
+          }
+        }
+      }
+      $curl->clear();
+      return $result;
+    }
+  }
+
 }
