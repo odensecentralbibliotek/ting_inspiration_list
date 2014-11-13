@@ -23,7 +23,7 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
   // Define the return block.
   $block = new stdClass();
   // Check if context exists.
-  if (isset($context[0]->data) && ($context[0]->data->type == 'ting_inspiration_list' || $context[0]->data->type == 'genre_page')) {
+  if (isset($context[0]->data)) {
 
     $node = $context[0]->data;
     if (ting_inspiration_list_no_search_query($node)) {
@@ -47,9 +47,8 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
 }
 
 function ting_inspiration_list_no_search_query($node) {
-  $alma_query = field_get_items('node', $node, 'field_ddelibra_inspiration_list');
   $well_query = field_get_items('node', $node, 'field_inspiration_list_search');
-  return (empty($alma_query[0]['value']) && empty($well_query[0]['value']));
+  return (!isset($well_query) || empty($well_query[0]['value']));
 }
 
 /**

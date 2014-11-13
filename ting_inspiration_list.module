@@ -147,36 +147,28 @@ function ting_inspiration_list_node_presave ($node) {
 
 function ting_inspiration_list_get_inspration_list_covers($node) {
   $number_of_raw_results = ting_inspiration_list_number_of_raw_result($node);
-  $alma_query = field_get_items('node', $node, 'field_ddelibra_inspiration_list');
-  if (!empty($alma_query[0]['value'])) {
-    //Use alma to get results
-    $query = $alma_query[0]['value'];
-    $ids = ting_inspiration_list_search_alma_query($query, $number_of_raw_results);
-  } else {
-    //Use the datawell to get results. Build search query based on node fields.
-    $query = ting_inspiration_list_build_search_query($node);
-    $raw_search_results = ting_inspiration_list_get_raw_result($query, $number_of_raw_results);  
-    $ids = ting_inspiration_list_process_search_results($raw_search_results);
-  }
-  
+  $number_of_objects = ting_inspiration_list_number_of_objects($node) * 2;
+
+  //Perform multiple queries against the well and get all the ids
+  $query = ting_inspiration_list_build_search_query($node);
+  $raw_search_results = ting_inspiration_list_get_raw_result($query, $number_of_raw_results);
+  $ids = ting_inspiration_list_process_search_results($raw_search_results);
+
+  //Check how many copies of each material there is against the local library system.
   $availablity_info = ting_inspiration_list_get_availability_info($ids);
   $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
-
-  $number_of_objects = ting_inspiration_list_number_of_objects($node) * 2;
+ 
+  //Fetch the top $number_of_objects and check if there is a cover. We get 2x number of objects to make sure there enough object with covers.
   $list_query = ting_inspiration_list_make_list_query($ranked_ids, 0, $number_of_objects);
   $search_result = ting_inspiration_list_do_search($list_query, 0, $number_of_objects);
-
   $cached_results = ting_inspiration_list_build_search_result($search_result, $node);
+  
   ting_inspiration_list_set_cached_lists($node, $cached_results);
-  // Update the cache history table.
-  $query = db_insert('cache_history_ting_inspiration_list');
-  $query->fields(array(
-    'nid' => $node->nid,
-    'time' => time(),
-  ));
-  $query->execute();  
+
   return $cached_results;
 }
+
+
 
 function ting_inspiration_list_build_search_result($search_result, $node) {
    $cached_results = NULL;
@@ -272,26 +264,6 @@ function ting_inspiration_list_number_of_raw_result($node) {
   return $number_of_raw_results;
 }
 
-function ting_inspiration_list_search_alma_query($alma_query_string, $number_of_results_to_fetch) {
-  $ids = array();
-  $alma_ids = array();
-  $start_number = 1;
-  $number_results_per_query = 50;
-  do {
-    $results = alma_search_search($alma_query_string, $start_number, $number_results_per_query);
-    $start_number = $results['stop_number'] + 1;
-    if (isset($results) && isset($results['alma_ids'])) {
-     $alma_ids = array_merge($alma_ids, $results['alma_ids']);
-    }
-  } while (isset($results) && $results['stop_number'] + 1 < $results['number_of_records_total'] && $results['stop_number'] < $number_of_results_to_fetch);
-  foreach ($alma_ids as $alma_id) {
-    $ids[$alma_id] = array(
-      'ownerId' => '773000',
-      'localId' => $alma_id,
-    );
-  }
-  return $ids ;
-}
 
 
 /**
@@ -468,6 +440,13 @@ function ting_inspiration_list_set_cached_lists($node, $block) {
   $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
   // Save cache for a week.
   cache_set($cid, $block, 'cache_ting_inspiration_list', time() + 604800);
+  // Update the cache history table.
+  $query = db_insert('cache_history_ting_inspiration_list');
+  $query->fields(array(
+    'nid' => $node->nid,
+    'time' => time(),
+  ));
+  $query->execute();
 }
 
 
