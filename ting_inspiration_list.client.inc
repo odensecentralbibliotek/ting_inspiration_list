@@ -48,7 +48,6 @@ function ting_inspiration_list_build_request($query, $page = 1, $results_per_pag
   if ($agency = variable_get('ting_agency', FALSE)) {
     $request->setAgency($agency);
   }
-$request->setSort('date_descending');
   $request->setStart($results_per_page * ($page - 1) + 1);
   $request->setNumResults($results_per_page);
 
@@ -62,56 +61,6 @@ $request->setSort('date_descending');
   if (!empty($profile) && method_exists($request, 'setProfile')) {
     $request->setProfile($profile);
   }
-
-
-  // Apply custom ranking if enabled.
-//  if (variable_get('ting_ranking_custom', FALSE)) {
-//    $fields = array();
-//    foreach (variable_get('ting_ranking_fields', array()) as $field) {
-//      $fields[] = array(
-//        'fieldName' => $field['field_name'],
-//        'fieldType' => $field['field_type'],
-//        'weight' => $field['weight'],
-//      );
-//    }
-
-//    if (!empty($fields)) {
-//      // Add the default anyIndex boosts.
-//      $fields[] = array(
-//        'fieldName' => 'cql.anyIndexes',
-//        'fieldType' => 'phrase',
-//        'weight' => 1,
-//      );
-//
-//      $fields[] = array(
-//        'fieldName' => 'cql.anyIndexes',
-//        'fieldType' => 'word',
-//        'weight' => 1,
-//      );
-//
-//      $request->userDefinedRanking = array('tieValue' => 0.1, 'rankField' => $fields);
-//    }
- // }
-  // Otherwise, use the ranking setting.
-//  else {
-//    $request->setRank((isset($options['rank']) && $options['rank']) ? $options['rank'] : 'rank_general');
-//  }
-
-  // Apply custom boosts if any.
-//  $boosts = variable_get('ting_boost_fields', array());
-//
-//  if ($boosts) {
-//    $uboosts = array();
-//    foreach ($boosts as $boost_field) {
-//      $uboosts[] = array(
-//        'fieldName' => $boost_field['field_name'],
-//        'fieldValue' => $boost_field['field_value'],
-//        'weight' => $boost_field['weight'],
-//      );
-//    }
-//    $request->userDefinedBoost = array('boostField' => $uboosts);
-//  }
-
   return $request;
 }
 
