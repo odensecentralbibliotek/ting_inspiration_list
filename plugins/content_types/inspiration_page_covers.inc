@@ -2,7 +2,7 @@
 
 /**
  * @file
- * This plugin generates a search result based on a new materials node. It's
+ * This plugin generates a inspiration list on a Inspiration list node. It's
  * mainly used to override the default page for this node type (node/%node).
  */
 $plugin = array(
@@ -13,11 +13,10 @@ $plugin = array(
   'render callback' => 'ting_inspiration_list_covers_content_type_render',
   'category' => t('Ting'),
   'required context' => array(new ctools_context_required(t('Inspiration List'), 'node')),
-  'render last' => TRUE,
 );
 
 /**
- * Render the ting new materials results results amount block.
+ * Render the inspiration list block.
  */
 function ting_inspiration_list_covers_content_type_render($subtype, $conf, $panel_args, $context) {
   // Define the return block.
@@ -26,7 +25,9 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
   if (isset($context[0]->data)) {
 
     $node = $context[0]->data;
-    if (ting_inspiration_list_no_search_query($node)) {
+    $well_query = field_get_items('node', $node, 'field_inspiration_list_search');
+    
+    if (!isset($well_query) || empty($well_query[0]['value'])) {
       return $block;
     }
     
@@ -46,10 +47,6 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
   return $block;
 }
 
-function ting_inspiration_list_no_search_query($node) {
-  $well_query = field_get_items('node', $node, 'field_inspiration_list_search');
-  return (!isset($well_query) || empty($well_query[0]['value']));
-}
 
 /**
  * Enable admin settings page.

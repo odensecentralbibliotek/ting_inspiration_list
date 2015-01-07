@@ -2,6 +2,11 @@
 
 /**
  * Duplicate code from ting_covers module. Ting covers module doesn't provide a api we can use.
+ * 
+ * @param array $covers_ids
+ *  Ids of the materials to fetch covers for.
+ * @param array
+ *   True if there is a cover image.
  */
 function ting_inspiration_list_check_covers($covers_ids) {
   $result_ids = array();
@@ -38,51 +43,6 @@ function ting_inspiration_list_check_covers($covers_ids) {
   }
   return $result_ids;
 }
-
-/**
- * Helper function to fetch and save a cover image file.
- *
- * @see image_style_create_derivative()
- *
- * @param string $filename
- *    File name, including its path within Drupal's file folder.
- * @param string $image_url
- *    URL for the source image file.
- * @return mixed
- *    A file object or FALSE on error.
- */
-function ting_inspiration_list_fetch_image($filename, $image_url) {
-  $result = ting_inspiration_list_get_by_curl ($image_url); //To get by proxy on develplatform //drupal_http_request($image_url);
-
-  //Bail if the HTTP request failed
-//  if ($result->code != 200) {
-//    return FALSE;
-//  }
-
-  // Get the folder for the final location of this preset...
-  $directory = dirname($filename);
-  // Build the destination folder tree if it doesn't already exist.
-  if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
-    watchdog('ting_covers', 'Failed to create directory: %directory', array('%directory' => $directory), WATCHDOG_ERROR);
-    return FALSE;
-  }
-
-  return file_unmanaged_save_data($result, $filename, FILE_EXISTS_REPLACE);
-}
-
- 
-//Developmentplatform has proxy
-function ting_inspiration_list_get_by_curl ($url) {
-$agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.8) Gecko/2009032609 Firefox/3.0.8';
-$curl_handle=curl_init();
-curl_setopt($curl_handle, CURLOPT_PROXY, '172.18.0.30:8080');
-curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($curl_handle, CURLOPT_USERAGENT, $agent);
-curl_setopt($curl_handle,CURLOPT_URL, $url);
-
-return curl_exec($curl_handle);
-}
-
 
 
 ?>
