@@ -4,6 +4,8 @@
  * Enables listing the newest materials .
  */
 
+include_once 'ting_inspiration_list.features.inc';
+
 // Default cache lifetime for term list (10 days).
 define('TING_INSPIRATION_LIST_DEFAULT_CACHE_LIFETIME', 10); 
 // Default amount of term lists to cache each night.
@@ -253,7 +255,7 @@ function ting_inspiration_list_render_cover($cached_results, $node) {
   foreach ($cached_results as $object) {
     // Add the result to an array for the "ting_search_results" theme
     // function.      
-    $image = theme('ting_object_cover', array('elements' => array('#object' => $object, '#image_style' => 'ting_new_materials_cover')));
+    $image = theme('ting_object_cover', array('elements' => array('#object' => $object, '#image_style' => 'ting_inspiration_list_cover')));
     $options = array(
       'html' => TRUE,
       'attributes' => array('title' => $object->collectionTitle),
@@ -293,7 +295,7 @@ function ting_inspiration_list_number_of_objects($node) {
   $number_per_row = variable_get('ting_genre_pages_default_number_per_row', 7);
   $number_of_rows = 3;
 
-  $items = field_get_items('node', $node, 'field_inspiration_list_row_count');
+  $items = field_get_items('node', $node, 'field_inspiration_row_count');
   if (isset($items) && is_array($items) && isset($items[0]['value'])) {
     $number_of_rows = $items[0]['value'];
   }
@@ -311,7 +313,7 @@ function ting_inspiration_list_number_of_objects($node) {
  *  Number of objects to get from the data well.
  */
 function ting_inspiration_list_number_of_raw_result($node) {
-  $items = field_get_items('node', $node, 'field_inspiration_list_raw_count');
+  $items = field_get_items('node', $node, 'field_inspiration_raw_count');
   if (isset($items) && is_array($items) && isset($items[0]['value'])) {
     $number_of_raw_results = $items[0]['value'];
   } else {
@@ -331,7 +333,7 @@ function ting_inspiration_list_number_of_raw_result($node) {
  */
 function ting_inspiration_list_build_search_query($entity) {
   // Get search query from the entity.
-  $items = field_get_items('node', $entity, 'field_inspiration_list_search');
+  $items = field_get_items('node', $entity, 'field_inspiration_search');
   $query = $items[0]['value'];
   $query = '(' . $query . ')';
 
