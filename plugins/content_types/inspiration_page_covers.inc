@@ -19,7 +19,6 @@ $plugin = array(
  * Render the inspiration list block.
  */
 function ting_inspiration_list_covers_content_type_render($subtype, $conf, $panel_args, $context) {
-  file_put_contents("/home/quickstart/work/debug/debuginsplist1.txt", print_r($context, TRUE), FILE_APPEND);
   // Define the return block.
   $block = new stdClass();
   // Check if context exists.
