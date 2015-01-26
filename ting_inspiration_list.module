@@ -439,7 +439,7 @@ function ting_inspiration_list_process_availability($availablity_info, $ids) {
   if ($availablity_info) {
     foreach ($availablity_info as $id => $info) {
       $count = 0;
-      if (isset($info['holdings'])) {
+      if (isset($info['holdings']) && !empty($info['holdings'])) {
         foreach ($info['holdings'] as $holding) {
           if (isset($holding['total_count'])) {
             $count += $holding['total_count'];
