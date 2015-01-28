@@ -1,0 +1,23 @@
+/* 
+    Document   : ting_inspiration_list.css
+    Created on : Jan 28, 2015, 10:29:35 AM
+*/
+
+
+/* Inspiration list */
+
+
+.ting-inspiration-list .ting-inspiration-title {
+  padding-left: 16px;
+  padding-top:  16px;
+}
+
+.ting-inspiration-list .search-results li {
+  margin-bottom: 1.5em;
+  margin-right: 10px;
+}
+
+.ting-inspiration-list .search-results ul {
+  margin-left: 20px;
+}
+

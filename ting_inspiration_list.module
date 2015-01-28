@@ -29,8 +29,8 @@ function ting_inspiration_list_ctools_plugin_directory($module, $plugin) {
 function ting_inspiration_list_theme($existing, $type, $theme, $path) {
   return array(
     'ting_inspiration_list' => array(
-      'variables' => array('title' => NULL, 'legend' => NULL, 'availability_legend' => NULL, 'results' => NULL),
-      'template'  => 'ting-new-materials',
+      'variables' => array('title' => NULL, 'results' => NULL),
+      'template'  => 'ting-inspiration-list',
       'path' => $path . '/templates',
     ),
     'covers_search_results' => array(
@@ -266,11 +266,8 @@ function ting_inspiration_list_render_cover($cached_results, $node) {
   }
     // Set default page result.
   $content = array(
-    //TODO change to own theme
-    '#theme' => 'ting_new_materials',
-    '#title' => t('Inspiration'),
-    '#availability_legend' => NULL,
-    '#legend' => isset($legend) ? $legend : NULL,
+    '#theme' => 'ting_inspiration_list',
+    '#title' => $node->title,
   );
 
   // If any search result have been found add them to the array.
@@ -281,6 +278,14 @@ function ting_inspiration_list_render_cover($cached_results, $node) {
     );
   }
   return $content;
+}
+
+/**
+ * Implements default preprocess function for the ting inspiration list.
+ */
+function template_preprocess_ting_inspiration_list(&$vars, $hook) {
+  $path = drupal_get_path('module', 'ting_inspiration_list');
+  drupal_add_css($path . '/css/ting_inspiration_list.css');
 }
 
 /**
