@@ -177,10 +177,7 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
   //Check how many copies of each material there is against the local library system.
   $availablity_info = ting_inspiration_list_get_availability_info($ids);
   $ranked_ids = ting_inspiration_list_process_availability($availablity_info, $ids);
- file_put_contents("/home/quickstart/work/debug/debuginsp8.txt", print_r($ranked_ids, TRUE), FILE_APPEND);
-  //Fetch the top $number_of_objects and check if there is a cover. We get 2x number of objects to make sure there enough object with covers.
-  //$list_query = ting_inspiration_list_make_list_query($ranked_ids, 0, $number_of_objects, $raw_search_results);
-  //$search_result = ting_inspiration_list_do_search($list_query, 0, $number_of_objects);
+
   $cached_results = ting_inspiration_list_build_search_result($ranked_ids , $node);
   
   ting_inspiration_list_set_cached_lists($node, $cached_results);
@@ -200,27 +197,24 @@ function ting_inspiration_list_get_inspration_list_covers($node) {
  *   A array of lightweight of objects with the data needed to show a material on a inspiration list page.
  */
 function ting_inspiration_list_build_search_result($ranked_results, $node) {
-  file_put_contents("/home/quickstart/work/debug/debuginsp9.txt", print_r($ranked_results, TRUE), FILE_APPEND);
-   $cached_results = NULL;
-  // Check if the search return any results.
+  $cached_results = NULL;
 
-    module_load_include('covers.inc', 'ting_inspiration_list');
-    $ranked_results = ting_inspiration_list_check_covers($ranked_results);
+  $number_of_objects = ting_inspiration_list_number_of_objects($node);
+  module_load_include('covers.inc', 'ting_inspiration_list');
+  //We check 3x number of objects if they have a image beacause not every object has a image.
+  $ranked_results = ting_inspiration_list_check_covers($ranked_results, $number_of_objects * 3);
 
-    $number_of_objects = ting_inspiration_list_number_of_objects($node);
-    $number_found = 0;
-    $results = array();
-
-    foreach ($ranked_results as $object) {
-      // If there is a image
-      if ($object->hasImage) {
-        $cached_results[] = $object;
-        $number_found++;
-        if ($number_found >= $number_of_objects) {
-          break;
-        }
+  $number_found = 0;
+  foreach ($ranked_results as $object) {
+    // If there is a image
+    if ($object->hasImage) {
+      $cached_results[] = $object;
+      $number_found++;
+      if ($number_found >= $number_of_objects) {
+        break;
       }
     }
+  }
 
   return $cached_results;
 }
@@ -386,7 +380,7 @@ function ting_inspiration_list_process_search_results($search_results) {
               $uri = entity_uri('ting_collection', $collection);
               $coverObject->uri = $uri['path'];
 
-              $ids[$object->localId] = $coverObject;
+              $ids[$coverObject->localId] = $coverObject;
             }
           }
         }
@@ -451,38 +445,7 @@ function ting_inspiration_list_process_availability($availablity_info, $ids) {
   return $ids;
 }
 
-//TODO refactor.
 /**
- * Builds a search query string against the Data Well which gets the .
- *
- * @param type $entity
- *  A new materials entity content type.
- * @param type $limit_query
- *  If TRUE the search query will be limited to the number of months given in
- *  the entity. Default TRUE.
- * @return string
- *  Ting data well search string.
- */
-function ting_inspiration_list_make_list_query($ids, $page = 0, $number_per_page = 10) {
-  $query = "";
-  $offset = ($page) * $number_per_page;
-  if (count($ids) > $offset) {
-
-    $result_ids = array_slice($ids, $offset, $number_per_page);
-    $first = true;
-    foreach ($result_ids as $id) {
-      if ($first) {
-        $query .= $id->localId;
-        $first = false;
-      } else {
-        $query .= ' OR ' . $id->localId;
-      }
-    }
-  }
-  return $query;
-}
-
-/**TODO refactor
  * Performs a query against the Data Well and returns the objects.
  *
  * @param string @query

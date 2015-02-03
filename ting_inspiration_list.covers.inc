@@ -8,10 +8,9 @@
  * @param array
  *   True if there is a cover image.
  */
-function ting_inspiration_list_check_covers($covers_ids) {
-file_put_contents("/home/quickstart/work/debug/debuginsp10.txt", print_r($covers_ids, TRUE), FILE_APPEND);
-  $result_ids = array();
+function ting_inspiration_list_check_covers($covers_ids, $number_of_objects) {
   $missing_images_local_ids = array();
+  $number_found = 0;
 
   foreach ($covers_ids as $cover_id) {
     // Determine if the local id is a known negative.
@@ -29,13 +28,17 @@ file_put_contents("/home/quickstart/work/debug/debuginsp10.txt", print_r($covers
           'libraryCode' => $cover_id->ownerId,
       );
     }
+    $number_found++;
+    if ($number_found >= $number_of_objects) {
+      break;
+    }
   }
   $service = new AdditionalInformationService(variable_get('addi_wsdl_url'), variable_get('addi_username'), variable_get('addi_group'), variable_get('addi_password'));
   // Local ids = Faust numbers. Library object identifiers can be confusing.
   $additional_informations = $service->getByLocalIdentifier($missing_images_local_ids);
   foreach ($missing_images_local_ids as $local_id) {
     if (isset($additional_informations[$local_id->localIdentifier]) && $ai = $additional_informations[$local_id->localIdentifier]) {
-      if ($ai->detailUrl  || $ai->thumbnailUrl) {
+      if ($ai->detailUrl || $ai->thumbnailUrl) {
         $covers_ids[$local_id->localIdentifier]->hasImage = TRUE;
       } else {
         $covers_ids[$local_id->localIdentifier]->hasImage = FALSE;
