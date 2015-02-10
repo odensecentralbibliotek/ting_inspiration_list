@@ -202,7 +202,6 @@ function ting_inspiration_list_build_search_result($ranked_results, $node) {
   module_load_include('covers.inc', 'ting_inspiration_list');
   //We check 3x number of objects if they have a image beacause not every object has a image.
   $ranked_results = ting_inspiration_list_check_covers($ranked_results, $number_of_objects * 3);
-file_put_contents("/home/quickstart/work/debug/debuginsp11.txt", print_r($ranked_results  , TRUE), FILE_APPEND);
   $number_found = 0;
   foreach ($ranked_results as $object) {
     // If there is a image
