@@ -16,7 +16,7 @@ function ting_inspiration_list_check_covers($covers_ids, $number_of_objects) {
     // Determine if the local id is a known negative.
     if (cache_get('ting_covers:' . $cover_id->localId, FALSE)) {
       $cover_id->hasImage = FALSE;
-      break;
+      continue;
     }
 
     $path = ting_covers_object_path($cover_id->localId);
