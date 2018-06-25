@@ -20,7 +20,6 @@ $plugin = array(
  */
 function ting_inspiration_list_covers_content_type_render($subtype, $conf, $panel_args, $context) {
   // Define the return block.
-  set_time_limit (5800); // set to 30 minutes...server normaly lower.
   $block = new stdClass();
   // Check if context exists.
   if (isset($context[0]->data)) {
