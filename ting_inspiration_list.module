@@ -335,7 +335,7 @@ function ting_inspiration_list_build_search_query($entity) {
  */
 function ting_inspiration_list_get_raw_result($query, $number_of_objects = 100) {
   $results = array();
-  $objects_per_request = 50;
+  $objects_per_request = $number_of_objects;
   $i = 0;
   $number_of_objects_retrieved = 0;
   do {

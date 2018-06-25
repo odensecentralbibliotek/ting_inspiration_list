@@ -34,11 +34,12 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
     
     $cid = _ting_inspiration_list_get_cid_from_nid($node->nid);
     $cache = cache_get($cid, 'cache_ting_inspiration_list');
-    if ($cache && ($cache->expire > REQUEST_TIME)) {
+    if (false && $cache && ($cache->expire > REQUEST_TIME)) {
       $cached_results = $cache->data;
     } else {
-      
+      $_SESSION["inspiration_marcx_disable"] = true;
       $cached_results = ting_inspiration_list_get_inspration_list_covers($node);
+      $_SESSION["inspiration_marcx_disable"] = false;
     }
     // Set block content.
     drupal_add_js(drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js');
