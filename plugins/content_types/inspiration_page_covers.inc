@@ -36,6 +36,7 @@ function ting_inspiration_list_covers_content_type_render($subtype, $conf, $pane
     if ($cache && ($cache->expire > REQUEST_TIME)) {
       $cached_results = $cache->data;
     } else {
+      set_time_limit (1800); // set to 30 minutes...server normaly lower.
       $cached_results = ting_inspiration_list_get_inspration_list_covers($node);
     }
     // Set block content.
